@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}
+    release: {{ .Values.app.tag }}
+    heritage: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  {{- if .Values.rollingUpdateStrategy }}
+  strategy:
+    type: RollingUpdate 
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: runtime/default
+        co.elastic.logs/multiline.pattern: ^20
+        co.elastic.logs/multiline.negate: "true"
+        co.elastic.logs/multiline.match: after
+      labels:
+        app: {{ .Release.Name }}
+        businessUnit: {{ .Values.organization }}
+        applicationName: {{ .Release.Name }}
+        packageEnv: {{ default "defaultEnv" .Values.app.env }}
+        telemetry-wsi-services-app-logs: "{{ default false .Values.app.enableTelemetry }}"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10325
+        runAsGroup: 10000
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.dockerRegistry }}/{{ .Values.organization }}/{{ .Release.Name }}:{{ .Values.app.tag }}
+        imagePullPolicy: {{ default "Always" .Values.app.imagePullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+        - containerPort: {{ .Values.app.port }}
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: {{ .Values.app.testEndpoint }}
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: 180
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: {{ .Values.app.testEndpoint }}
+            port: {{ .Values.app.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        env:
+        - name: APP_HOME
+          value: /app
+        - name: activeEnv
+          value: {{ .Values.app.home.config }}
+        {{- if .Values.app.ishome }}
+        command: ["/bin/sh", "-c"]
+        args: ["sed -i \"s/local/$(activeEnv)/g\" /usr/share/nginx/html/bootstrap.js; nginx -g \"daemon off;\""]
+        {{- end }}
