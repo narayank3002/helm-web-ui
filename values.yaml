@@ -1,0 +1,77 @@
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 6
+rollingUpdateStrategy: true
+namespace: supplychain-pciccui-prod
+
+mysecret: ENC[AES256_GCM,data:8zLjYdjohqo=,iv:y6MSTlHqDIqy1ZULGgmqSh7voYCt3YpnN2qXrm7+q6o=,tag:dK6MjKAwvqO8dC3GodvODA==,type:str]
+
+
+dockerRegistry: container-registry02.wsgc.com
+organization: supplychain
+dcRegion: east
+app:
+  tag: release.2021.03.28
+#  imagePullPolicy: Always
+#  port: 8080
+  testEndpoint: /
+#  name: shipment-service
+  enableTelemetry: false
+  # useTaggedJar when True will create the jar file name as "app.name + app.tag + .jar"
+  # as the dev requested this to be specific to release 
+  # when FALSE it will generate a value as <app.name>.jar  (DEFAULT Value is "false")
+  # when TRUE the value generated will be <app.name>.<app.tag>.jar
+  #useTaggedJar: false
+  isProduction: true
+  #haveCustomJavaParams: false
+  #customJavaParams: ""
+  env: prod
+  home:
+    config: production
+  ishome: false
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+
+#nfs:
+#  enabled: false
+#  server: STGRCK-SVMNAS01.wsgc.com
+#  path: "/STOREOPS_PROD_NFS/qt_storeops_prod"
+#  enableddax: false
+#  serverdax: stgrknnas.wsgc.com
+#  pathdax: "/TIBCO_PROD_NFS"
+#  daxlocation:  "/mnt/prod"
+
+ingress:
+  # <organization>-<project-name>-<branch-name>.services.west.wsgc.com
+#  host: shipments-supplychain.services.west.wsgc.com
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+  tls:
+    secretName: supplychain-ccui-prod1-tls-ingress
+
+# Doubling up limits defined in Non-Prod env
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2048Mi  #1300Mi  (80% of 1300Megabite = 1GB JVM)
+  requests:
+    cpu: 50m       #50m
+    memory: 1024Mi  #512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
