@@ -3,12 +3,12 @@
 
 replicaCount: 6
 rollingUpdateStrategy: true
-namespace: supplychain-pciccui-prod
+namespace: namespacename
 
 mysecret: ENC[AES256_GCM,data:8zLjYdjohqo=,iv:y6MSTlHqDIqy1ZULGgmqSh7voYCt3YpnN2qXrm7+q6o=,tag:dK6MjKAwvqO8dC3GodvODA==,type:str]
 
 
-dockerRegistry: container-registry02.wsgc.com
+dockerRegistry: container-registry02.narayan.com
 organization: supplychain
 dcRegion: east
 app:
@@ -41,16 +41,16 @@ service:
 
 #nfs:
 #  enabled: false
-#  server: STGRCK-SVMNAS01.wsgc.com
+#  server: STGRCK-SVMNAS01.narayan.com
 #  path: "/STOREOPS_PROD_NFS/qt_storeops_prod"
 #  enableddax: false
-#  serverdax: stgrknnas.wsgc.com
+#  serverdax: stgrknnas.narayan.com
 #  pathdax: "/TIBCO_PROD_NFS"
 #  daxlocation:  "/mnt/prod"
 
 ingress:
-  # <organization>-<project-name>-<branch-name>.services.west.wsgc.com
-#  host: shipments-supplychain.services.west.wsgc.com
+  # <organization>-<project-name>-<branch-name>.services.west.narayan.com
+#  host: shipments-supplychain.services.west.narayan.com
   enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -58,7 +58,7 @@ ingress:
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-  tls:
+  tls: (#this is not we always use , it is only for some services, mostly for ui based one's )
     secretName: supplychain-ccui-prod1-tls-ingress
 
 # Doubling up limits defined in Non-Prod env
